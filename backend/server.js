@@ -1,12 +1,19 @@
+import path from 'path';
 import express from 'express';
 import dotenv from 'dotenv';
-import authRoutes from './routes/auth.route.js';
-import connectToMongoDB from './database/connectToMongoDB.js';
 import cookieParser from 'cookie-parser';
-import path from 'path';
-
+import connectToMongoDB from './database/connectToMongoDB.js';
+import authRoutes from './routes/auth.routes.js';
+import usersRoutes from './routes/users.routes.js';
+import { v2 as cloudinary } from 'cloudinary';
 dotenv.config({
   path: path.resolve(process.cwd(), '.env'),
+});
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const app = express();
@@ -18,8 +25,9 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 
-app.listen(PORT, (req, res) => {
+app.listen(PORT, () => {
   connectToMongoDB();
   console.log(`Server is running at: http://localhost:${PORT}`);
 });
