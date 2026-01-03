@@ -7,6 +7,9 @@ import { MdOutlineMail } from 'react-icons/md';
 import { FaUser } from 'react-icons/fa';
 import { MdPassword } from 'react-icons/md';
 import { MdDriveFileRenameOutline } from 'react-icons/md';
+import { useMutation } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
+import type { tFormData, tResponseData } from '../../../types';
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -16,17 +19,47 @@ const SignUpPage = () => {
     password: '',
   });
 
+  const {
+    mutate: signUpMutation,
+    isError,
+    isPending,
+  } = useMutation<tResponseData, Error, tFormData>({
+    mutationFn: async ({ email, username, fullName, password }) => {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, username, fullName, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      console.log(data);
+      return data;
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error.message);
+    },
+    onSuccess: () => {
+      toast.success('Account created successfully');
+    },
+  });
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log(formData);
+    signUpMutation(formData);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
-  const isError = false;
 
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen px-10">
@@ -87,7 +120,7 @@ const SignUpPage = () => {
             />
           </label>
           <button className="btn rounded-full btn-primary text-white">
-            Sign up
+            {!isPending ? 'Sign up' : 'Loading...'}
           </button>
           {isError && <p className="text-red-500">Something went wrong</p>}
         </form>

@@ -30,3 +30,22 @@ export interface iComment {
   createdAt: string;
   updatedAt: string;
 }
+
+export type tFormData = {
+  username: string;
+  password: string;
+  email?: string;
+  fullName?: string;
+};
+
+export type tResponseData = {
+  message?: string;
+  error?: string;
+};
+
+export type iAuthUser = {
+  username: string;
+  email?: string;
+  fullName?: string;
+  profileImg?: string;
+};

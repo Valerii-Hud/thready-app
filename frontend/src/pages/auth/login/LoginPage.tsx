@@ -5,24 +5,57 @@ import XSvg from '../../../components/svgs/X';
 
 import { MdOutlineMail } from 'react-icons/md';
 import { MdPassword } from 'react-icons/md';
+import toast from 'react-hot-toast';
+import type { tFormData, tResponseData } from '../../../types';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+  const queryClient = useQueryClient();
+  const {
+    mutate: loginMutation,
+    isError,
+    isPending,
+  } = useMutation<tResponseData, Error, tFormData>({
+    mutationFn: async ({ username, password }) => {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      console.log(data);
+      return data;
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['authUser'] });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(formData);
+    loginMutation(formData);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
-  const isError = false;
 
   return (
     <div className="max-w-screen-xl mx-auto flex h-screen">
@@ -57,7 +90,7 @@ const LoginPage = () => {
             />
           </label>
           <button className="btn rounded-full btn-primary text-white">
-            Login
+            {!isPending ? 'Login' : 'Loading...'}
           </button>
           {isError && <p className="text-red-500">Something went wrong</p>}
         </form>
