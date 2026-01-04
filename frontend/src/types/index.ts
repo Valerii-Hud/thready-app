@@ -1,3 +1,5 @@
+import type { ObjectId } from 'mongoose';
+
 export interface iPostUser {
   _id: string;
   username: string;
@@ -44,6 +46,7 @@ export type tResponseData = {
 };
 
 export type iAuthUser = {
+  _id: string | ObjectId;
   username: string;
   email?: string;
   fullName?: string;
